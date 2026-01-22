@@ -243,6 +243,7 @@ GameObject:
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
+  - component: {fileID: 330585549}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -380,11 +381,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d31817a8a21214438d7d53652a0cdb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
-  target: {fileID: 0}
+  target: {fileID: 1847467687}
   offset: {x: 0, y: 5, z: -10}
   sensitivity: 0.5
   pitchLimits: {x: -40, y: 80}
   lockCursor: 1
+--- !u!114 &330585549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c92c114f3a9a208429cb4a26f4d17300, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraObstacleFader
+  target: {fileID: 1847467687}
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 1
+  transparentMaterial: {fileID: 2100000, guid: 9fe0c91103b2f4045aea0704f8fcd9dd, type: 2}
+  fadeSpeed: 5
 --- !u!1 &375758094
 GameObject:
   m_ObjectHideFlags: 0
@@ -720,8 +739,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5532cd1b75cc4d4bb3863cf1938ae45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapFlipper
-  mapRoot: {fileID: 0}
-  player: {fileID: 0}
+  mapRoot: {fileID: 1371690503}
+  player: {fileID: 1847467691}
   duration: 1
 --- !u!1 &1846492890
 GameObject:
@@ -846,6 +865,8 @@ GameObject:
   - component: {fileID: 1847467690}
   - component: {fileID: 1847467689}
   - component: {fileID: 1847467688}
+  - component: {fileID: 1847467692}
+  - component: {fileID: 1847467691}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -947,6 +968,48 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1847467686}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1847467691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1847467686}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f44b793f63afe44196dee5bbb9c9963, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  moveSpeed: 6
+  rotationSpeed: 10
+  gravity: -9.81
+  useGravity: 1
+  groundedGravity: -2
+--- !u!143 &1847467692
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1847467686}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.5000001
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

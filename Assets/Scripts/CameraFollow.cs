@@ -18,7 +18,7 @@ public class CameraFollow : MonoBehaviour
     public Vector2 pitchLimits = new Vector2(-40, 80);
 
     [Tooltip("If true, the cursor will be locked to the screen center.")]
-    public bool lockCursor = true;
+    public bool lockCursor = false;
 
     private float currentYaw = 0f;
     private float currentPitch = 0f;
