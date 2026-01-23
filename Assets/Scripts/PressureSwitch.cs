@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -17,6 +18,12 @@ public class PressureSwitch : MonoBehaviour
 
     [Tooltip("Speed of the up/down animation.")]
     public float moveSpeed = 5.0f;
+
+    [Header("Events")]
+    [Tooltip("Event triggered when the switch is pressed.")]
+    public UnityEvent OnPressed;
+    [Tooltip("Event triggered when the switch is released.")]
+    public UnityEvent OnReleased;
 
     // Movement state
     private Vector3 initialPosition;
@@ -91,6 +98,9 @@ public class PressureSwitch : MonoBehaviour
         // Swap visuals
         if (unpressedVisual != null) unpressedVisual.SetActive(false);
         if (pressedVisual != null) pressedVisual.SetActive(true);
+        
+        // Invoke Event
+        OnPressed?.Invoke();
     }
 
     private void DeactivateSwitch()
@@ -101,5 +111,8 @@ public class PressureSwitch : MonoBehaviour
         // Swap visuals
         if (unpressedVisual != null) unpressedVisual.SetActive(true);
         if (pressedVisual != null) pressedVisual.SetActive(false);
+        
+        // Invoke Event
+        OnReleased?.Invoke();
     }
 }
