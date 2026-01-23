@@ -22,6 +22,7 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayer = ~0; // Default to Everything
     
     private Rigidbody rb;
+    private Collider playerCollider;
 
     // To handle camera-relative movement
     private Transform cameraTransform;
@@ -35,6 +36,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        playerCollider = GetComponent<Collider>();
         
         // Ensure the Rigidbody doesn't tip over and is simulation-driven
         rb.freezeRotation = true;
@@ -60,9 +62,17 @@ public class PlayerController : MonoBehaviour
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) verticalInput -= 1f;
 
             // Jump Input
-            if (Keyboard.current.spaceKey.wasPressedThisFrame && isGrounded)
+            if (Keyboard.current.spaceKey.wasPressedThisFrame)
             {
-                jumpRequested = true;
+                if (isGrounded)
+                {
+                    jumpRequested = true;
+                }
+                else
+                {
+                    // Debug Log to see why jump failed
+                    Debug.Log("Jump failed: Not Grounded");
+                }
             }
         }
     }
@@ -79,11 +89,30 @@ public class PlayerController : MonoBehaviour
 
     void CheckGround()
     {
-        // Simple raycast downwards to check for ground
-        // Adjust origin if needed based on character pivot
-        isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, groundCheckDistance, groundLayer);
+        if (playerCollider == null) return;
+
+        // Use Collider Bounds to find the exact bottom of the player
+        // This works regardless of where the Pivot Point is (Center, Top, Bottom)
+        float bottomY = playerCollider.bounds.min.y;
+        Vector3 center = playerCollider.bounds.center;
         
-        Debug.DrawRay(transform.position + Vector3.up * 0.1f, Vector3.down * groundCheckDistance, isGrounded ? Color.green : Color.red);
+        // Place the check box slightly below the bottom surface
+        Vector3 checkBoxCenter = new Vector3(center.x, bottomY - 0.05f, center.z);
+        
+        // Size: Slightly smaller than width to avoid wall touching
+        Vector3 halfExtents = new Vector3(playerCollider.bounds.extents.x * 0.9f, 0.05f, playerCollider.bounds.extents.z * 0.9f);
+
+        Collider[] hits = Physics.OverlapBox(checkBoxCenter, halfExtents, transform.rotation, groundLayer);
+        
+        isGrounded = false;
+        foreach (var hit in hits)
+        {
+            if (hit.gameObject != gameObject)
+            {
+                isGrounded = true;
+                break;
+            }
+        }
     }
 
     void HandleJump()
