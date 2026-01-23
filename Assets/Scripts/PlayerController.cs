@@ -10,6 +10,16 @@ public class PlayerController : MonoBehaviour
 
     [Tooltip("Rotation speed when turning.")]
     public float rotationSpeed = 10.0f;
+
+    [Header("Jump Settings")]
+    [Tooltip("Force applied when jumping.")]
+    private float jumpForce = 7.0f;
+
+    [Tooltip("Distance to check for ground.")]
+    public float groundCheckDistance = 1.1f;
+
+    [Tooltip("Layers considered as ground.")]
+    public LayerMask groundLayer = ~0; // Default to Everything
     
     private Rigidbody rb;
 
@@ -19,6 +29,8 @@ public class PlayerController : MonoBehaviour
     // Input storage
     private float horizontalInput;
     private float verticalInput;
+    private bool jumpRequested;
+    private bool isGrounded;
 
     void Start()
     {
@@ -46,6 +58,12 @@ public class PlayerController : MonoBehaviour
             if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) horizontalInput += 1f;
             if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) verticalInput += 1f;
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) verticalInput -= 1f;
+
+            // Jump Input
+            if (Keyboard.current.spaceKey.wasPressedThisFrame && isGrounded)
+            {
+                jumpRequested = true;
+            }
         }
     }
 
@@ -54,7 +72,32 @@ public class PlayerController : MonoBehaviour
         // If the Rigidbody is kinematic (e.g. during map flip), do not attempt to move it via physics
         if (rb.isKinematic) return;
 
+        CheckGround();
         HandleMovement();
+        HandleJump();
+    }
+
+    void CheckGround()
+    {
+        // Simple raycast downwards to check for ground
+        // Adjust origin if needed based on character pivot
+        isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, groundCheckDistance, groundLayer);
+        
+        Debug.DrawRay(transform.position + Vector3.up * 0.1f, Vector3.down * groundCheckDistance, isGrounded ? Color.green : Color.red);
+    }
+
+    void HandleJump()
+    {
+        if (jumpRequested)
+        {
+            // Reset vertical velocity for consistent jump height?
+            // Usually good to keep momentum or simple add force.
+            // Using Impulse for instant force.
+            
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            jumpRequested = false;
+            isGrounded = false;
+        }
     }
 
     void HandleMovement()
@@ -87,7 +130,7 @@ public class PlayerController : MonoBehaviour
             // Normalize moveDirection if needed, but here we just want direction
             Vector3 desiredVelocity = moveDirection.normalized * moveSpeed;
             
-            // Preserve vertical velocity (gravity)
+            // Preserve vertical velocity (gravity & jumping)
             desiredVelocity.y = rb.linearVelocity.y;
             
             rb.linearVelocity = desiredVelocity;
