@@ -49,6 +49,22 @@ public class PressureSwitch : MonoBehaviour
         {
             transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, moveSpeed * Time.deltaTime);
         }
+
+        // Cleanup destroyed objects (e.g. CubeGenerator replacing cubes)
+        // Iterate backwards to allow removal
+        for (int i = objectsOnSwitch.Count - 1; i >= 0; i--)
+        {
+            if (objectsOnSwitch[i] == null)
+            {
+                objectsOnSwitch.RemoveAt(i);
+                
+                // If it became empty due to destruction, deactivate
+                if (objectsOnSwitch.Count == 0)
+                {
+                    DeactivateSwitch();
+                }
+            }
+        }
     }
 
     public void HandleTriggerEnter(Collider other)
