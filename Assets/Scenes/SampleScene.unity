@@ -842,6 +842,7 @@ GameObject:
   - component: {fileID: 1162958261}
   - component: {fileID: 1162958263}
   - component: {fileID: 1162958264}
+  - component: {fileID: 1162958265}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -907,6 +908,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13065fdbd5088443d97e402d5190e0a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StateManager
+--- !u!114 &1162958265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1162958260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46e88c41313284df69f4d015baa574c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TimeRewindManager
+  recordLimit: 250
+  recordPeriod: 1
+  rewindLerpSpeed: 1
+  rewindDuration: 10
+  trackableLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  mapRoot: {fileID: 0}
 --- !u!1 &1371690502
 GameObject:
   m_ObjectHideFlags: 0
