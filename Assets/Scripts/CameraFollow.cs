@@ -15,7 +15,7 @@ public class CameraFollow : MonoBehaviour
     public float sensitivity = 0.5f;
 
     [Tooltip("Limit vertical rotation (Pitch).")]
-    public Vector2 pitchLimits = new Vector2(-40, 80);
+    private Vector2 pitchLimits = new Vector2(-70, 60);
 
     [Tooltip("If true, the cursor will be locked to the screen center.")]
     public bool lockCursor = false;
