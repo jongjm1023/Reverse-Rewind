@@ -77,10 +77,12 @@ public class TimeController : MonoBehaviour
         {
             // 단순 재개 (Q키 다시 누름)
             Time.timeScale = 1f;
-            
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
             // 상태 초기화
             StateManager.Instance.SetState(State.Normal);
-            
+
             Debug.Log("시간이 재개되었습니다.");
         }
     }
@@ -89,6 +91,9 @@ public class TimeController : MonoBehaviour
     {
         // 시간 재개
         Time.timeScale = 1f;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
 
         // 상태 변경 (역행 시작)
         StateManager.Instance.SetState(State.TimeRewind);
