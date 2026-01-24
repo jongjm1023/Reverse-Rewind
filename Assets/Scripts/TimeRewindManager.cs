@@ -321,6 +321,16 @@ public class TimeRewindManager : MonoBehaviour
 
         while (currentPlayhead > targetTime)
         {
+            // 역행 중인 오브젝트가 파괴됐으면 즉시 종료 (예: 스위치 밟아서 큐브 생성기가 기존 큐브 제거)
+            if (targetRb == null)
+            {
+                isRewinding = false;
+                currentRewindTarget = null;
+                rewindCoroutine = null;
+                Debug.Log("TimeRewindManager: 역행 대상이 파괴되어 역행을 중단합니다.");
+                yield break;
+            }
+
             // 실제 흐른 시간(unscaledDeltaTime)만큼 Playhead를 과거로 이동
             currentPlayhead -= Time.unscaledDeltaTime;
 
@@ -350,6 +360,16 @@ public class TimeRewindManager : MonoBehaviour
             }
 
             yield return null; // 매 프레임 대기
+        }
+
+        // 루프 탈출 직후에도 파괴됐을 수 있음 (스위치 등으로 제거)
+        if (targetRb == null)
+        {
+            isRewinding = false;
+            currentRewindTarget = null;
+            rewindCoroutine = null;
+            Debug.Log("TimeRewindManager: 역행 대상이 파괴되어 역행을 중단합니다.");
+            yield break;
         }
 
         // 최종 도달한 상태 확정 (오차 제거)

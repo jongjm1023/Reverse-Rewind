@@ -49,11 +49,26 @@ public class ObjectHighlighter : MonoBehaviour
                 // 마우스 위치에서 레이캐스트
                 Vector2 mousePos = Mouse.current.position.ReadValue();
                 Ray ray = mainCamera.ScreenPointToRay(mousePos);
-                RaycastHit hit;
                 
-                if (Physics.Raycast(ray, out hit, Mathf.Infinity, highlightLayer))
+                // RaycastAll을 사용하여 non-convex collider도 감지
+                RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity, highlightLayer);
+                
+                if (hits.Length > 0)
                 {
-                    Renderer renderer = hit.collider.GetComponent<Renderer>();
+                    // 가장 가까운 hit 찾기
+                    RaycastHit closestHit = hits[0];
+                    float closestDistance = hits[0].distance;
+                    
+                    for (int i = 1; i < hits.Length; i++)
+                    {
+                        if (hits[i].distance < closestDistance)
+                        {
+                            closestDistance = hits[i].distance;
+                            closestHit = hits[i];
+                        }
+                    }
+                    
+                    Renderer renderer = closestHit.collider.GetComponent<Renderer>();
                     
                     if (renderer != null && renderer != lastHighlighted)
                     {
@@ -70,7 +85,7 @@ public class ObjectHighlighter : MonoBehaviour
                     if (Mouse.current.leftButton.wasPressedThisFrame)
                     {
                         // 시간 재개 및 역행 시작
-                        timeController.ResumeTime(hit.collider.gameObject);
+                        timeController.ResumeTime(closestHit.collider.gameObject);
                         
                         // 하이라이트 제거
                         if (lastHighlighted != null)
