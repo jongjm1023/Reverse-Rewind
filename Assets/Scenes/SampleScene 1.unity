@@ -1120,10 +1120,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveSpeed: 8
   rotationSpeed: 10
+  jumpForce: 8
   groundCheckDistance: 1.1
   groundLayer:
     serializedVersion: 2
     m_Bits: 4294967295
+  acceleration: 60
+  deceleration: 40
 --- !u!54 &918123135
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1133,7 +1136,7 @@ Rigidbody:
   m_GameObject: {fileID: 918123133}
   serializedVersion: 5
   m_Mass: 1
-  m_LinearDamping: 0
+  m_LinearDamping: 0.7
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -1158,7 +1161,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 918123133}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 05ad64a9dbfd8e7498d1107908a98ac0, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -3506,6 +3509,10 @@ PrefabInstance:
     - target: {fileID: 7091014237498556732, guid: fbc1448b763699e42a47215d9b82e5f8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 7662113803570701168, guid: fbc1448b763699e42a47215d9b82e5f8, type: 3}
+      propertyPath: launchForce
+      value: 40
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

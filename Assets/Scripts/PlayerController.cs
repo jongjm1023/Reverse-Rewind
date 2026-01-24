@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Jump Settings")]
     [Tooltip("Force applied when jumping.")]
-    private float jumpForce = 7.0f;
+    public float jumpForce = 7.0f;
 
     [Tooltip("Distance to check for ground.")]
     public float groundCheckDistance = 1.1f;
