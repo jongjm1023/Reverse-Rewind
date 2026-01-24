@@ -7,7 +7,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Movement Settings")]
     [Tooltip("Movement speed of the player.")]
-    public float moveSpeed = 6.0f;
+    private float moveSpeed = 8.0f;
 
     [Tooltip("Rotation speed when turning.")]
     public float rotationSpeed = 10.0f;
@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour
 
     [Tooltip("Layers considered as ground.")]
     public LayerMask groundLayer = ~0; // Default to Everything
-    
+
     private Rigidbody rb;
     private Collider playerCollider;
 
@@ -37,6 +37,7 @@ public class PlayerController : MonoBehaviour
     private bool jumpRequested;
     private bool isGrounded;
     
+    Animator anim;
     public bool IsGrounded() 
     {
         return isGrounded;
@@ -58,7 +59,10 @@ public class PlayerController : MonoBehaviour
         {
             cameraTransform = Camera.main.transform;
         }
+        anim = GetComponent<Animator>();
+        anim.SetFloat("MotionSpeed", 1f);
     }
+
 
     public void Respawn()
     {
@@ -130,7 +134,18 @@ public class PlayerController : MonoBehaviour
             if (hit.collider.gameObject != gameObject)
             {
                 isGrounded = true;
+                anim.SetBool("Jump", false);
+                anim.SetBool("Grounded", true);
+                anim.SetBool("FreeFall", false);
                 break;
+            }
+        }
+        if (!isGrounded)
+        {
+            anim.SetBool("Grounded", false);
+            if(anim.GetBool("Jump") == false)
+            {
+                anim.SetBool("FreeFall", true);
             }
         }
     }
@@ -142,7 +157,7 @@ public class PlayerController : MonoBehaviour
             // Reset vertical velocity for consistent jump height?
             // Usually good to keep momentum or simple add force.
             // Using Impulse for instant force.
-            
+            anim.SetBool("Jump", true);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             jumpRequested = false;
             isGrounded = false;
@@ -173,6 +188,7 @@ public class PlayerController : MonoBehaviour
         // Apply movement force
         if (moveDirection.magnitude >= 0.1f)
         {
+            anim.SetFloat("Speed", 10f);
             moveDirection.Normalize();
 
             // Rotate character
@@ -180,6 +196,10 @@ public class PlayerController : MonoBehaviour
             rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
             
             transform.position += moveDirection * moveSpeed * Time.deltaTime;
+        }
+        else
+        {
+            anim.SetFloat("Speed", 0f);
         }
     }
 }
