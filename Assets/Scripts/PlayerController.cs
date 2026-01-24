@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
@@ -26,6 +27,9 @@ public class PlayerController : MonoBehaviour
 
     // To handle camera-relative movement
     private Transform cameraTransform;
+
+    // Respawn Settings
+    private Vector3 startPosition;
     
     // Input storage
     private float horizontalInput;
@@ -37,6 +41,9 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         playerCollider = GetComponent<Collider>();
+
+        // Store initial position for respawning
+        startPosition = transform.position;
         
         // Ensure the Rigidbody doesn't tip over and is simulation-driven
         rb.freezeRotation = true;
@@ -46,6 +53,12 @@ public class PlayerController : MonoBehaviour
         {
             cameraTransform = Camera.main.transform;
         }
+    }
+
+    public void Respawn()
+    {
+        // Reload the current scene
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     void Update()
