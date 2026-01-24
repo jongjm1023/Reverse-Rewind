@@ -23,6 +23,17 @@ public class TimeController : MonoBehaviour
         }
     }
     
+    [Header("References")]
+    public PlayerController player;
+
+    void Start()
+    {
+        if (player == null)
+        {
+            player = FindObjectOfType<PlayerController>();
+        }
+    }
+    
     void Update()
     {
         // Input System은 timeScale 영향 안받음
@@ -49,6 +60,13 @@ public class TimeController : MonoBehaviour
         if (!StateManager.Instance.CanUseAbility())
         {
             Debug.LogWarning("다른 능력 사용 중입니다!");
+            return;
+        }
+
+        // [추가] 지상 체크
+        if (player != null && !player.IsGrounded())
+        {
+            Debug.LogWarning("공중에서는 능력을 사용할 수 없습니다!");
             return;
         }
         

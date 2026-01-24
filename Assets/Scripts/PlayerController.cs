@@ -36,6 +36,11 @@ public class PlayerController : MonoBehaviour
     private float verticalInput;
     private bool jumpRequested;
     private bool isGrounded;
+    
+    public bool IsGrounded() 
+    {
+        return isGrounded;
+    }
 
     void Start()
     {

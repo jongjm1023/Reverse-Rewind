@@ -37,6 +37,10 @@ public class JumpPad : MonoBehaviour
     private Vector3 targetScale;
     private bool isActivated = false;
     private bool isReturning = false;
+    private bool isWaiting = false; // [New] Prevents re-triggering while waiting to return
+
+    // Track objects already launched in this activation cycle
+    private System.Collections.Generic.HashSet<Rigidbody> launchedObjects = new System.Collections.Generic.HashSet<Rigidbody>();
 
     void Start()
     {
@@ -60,6 +64,7 @@ public class JumpPad : MonoBehaviour
             {
                 transform.localScale = targetScale;
                 isActivated = false;
+                isWaiting = true; // Enter waiting state
                 
                 // Start return sequence
                 StartCoroutine(ReturnRoutine());
@@ -74,6 +79,9 @@ public class JumpPad : MonoBehaviour
             {
                 transform.localScale = originalScale;
                 isReturning = false;
+                
+                // Reset launched objects on full complete
+                launchedObjects.Clear();
             }
         }
     }
@@ -81,6 +89,7 @@ public class JumpPad : MonoBehaviour
     private IEnumerator ReturnRoutine()
     {
         yield return new WaitForSeconds(resetDelay);
+        isWaiting = false; // Exit waiting state
         isReturning = true;
     }
 
@@ -89,19 +98,28 @@ public class JumpPad : MonoBehaviour
     /// </summary>
     public void Activate()
     {
-        if (isActivated || isReturning) return; // Prevent triggering while active
+        // Check all states to prevent re-triggering
+        if (isActivated || isReturning || isWaiting) return;
 
         isActivated = true;
+        launchedObjects.Clear(); // Clear just in case
     }
 
     private void ApplyLaunchForce(Rigidbody targetRb)
     {
         if (targetRb != null && !targetRb.isKinematic)
         {
+            // Prevent double launch
+            if (launchedObjects.Contains(targetRb)) return;
+            launchedObjects.Add(targetRb);
+
             // Calculate direction in world space from local space
-            // This ensures it rotates with the JumpPad (e.g. 45 degrees)
             Vector3 launchDir = transform.TransformDirection(localLaunchDirection).normalized;
             
+            // [New] Reset previous velocity for consistent launch
+            targetRb.linearVelocity = Vector3.zero;
+            targetRb.angularVelocity = Vector3.zero; // Optional: reset rotation spin too
+
             // Apply force
             targetRb.AddForce(launchDir * launchForce, ForceMode.Impulse);
             
@@ -115,6 +133,12 @@ public class JumpPad : MonoBehaviour
         if (mode == ActivationMode.Step && !isActivated && !isReturning)
         {
             Activate();
+        }
+        
+        // Apply force even if already activated (multi-object support, single force per object)
+        // But only if we are in the "active" phase (not returning)
+        if (isActivated && !isReturning)
+        {
             ApplyLaunchForce(other.attachedRigidbody);
         }
     }

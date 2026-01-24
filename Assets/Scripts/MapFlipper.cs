@@ -37,6 +37,13 @@ public class MapFlipper : MonoBehaviour
             Debug.LogWarning("다른 능력 사용 중입니다!");
             yield break;
         }
+
+        // [추가] 지상 체크
+        if (player != null && !player.IsGrounded())
+        {
+            Debug.LogWarning("공중에서는 능력을 사용할 수 없습니다!");
+            yield break;
+        }
         
         StateManager.Instance.SetState(State.MapFlip);
 
