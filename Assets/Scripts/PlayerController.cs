@@ -153,8 +153,6 @@ public class PlayerController : MonoBehaviour
             // Camera-relative movement
             Vector3 forward = cameraTransform.forward;
             Vector3 right = cameraTransform.right;
-
-            // Flatten to XZ plane so looking up/down doesn't affect speed
             forward.y = 0f;
             right.y = 0f;
             forward.Normalize();
@@ -164,29 +162,19 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // World-relative movement (fallback)
             moveDirection = new Vector3(horizontalInput, 0f, verticalInput);
         }
 
-        // Apply movement to Rigidbody
+        // Apply movement force
         if (moveDirection.magnitude >= 0.1f)
         {
-            // Normalize moveDirection if needed, but here we just want direction
-            Vector3 desiredVelocity = moveDirection.normalized * moveSpeed;
-            
-            // Preserve vertical velocity (gravity & jumping)
-            desiredVelocity.y = rb.linearVelocity.y;
-            
-            rb.linearVelocity = desiredVelocity;
+            moveDirection.Normalize();
 
-            // Rotate character to face movement direction
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection.normalized);
+            // Rotate character
+            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
             rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
-        }
-        else
-        {
-            // Stop horizontal movement when no input, but keep gravity
-            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+            
+            transform.position += moveDirection * moveSpeed * Time.deltaTime;
         }
     }
 }
