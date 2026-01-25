@@ -20,6 +20,7 @@ public class ObjectHighlighter : MonoBehaviour
     public LayerMask highlightLayer = -1; // 모든 레이어
     
     private Renderer lastHighlighted;
+    private Renderer rewindHighlighted; // 리와인드 중인 오브젝트의 하이라이트
     private Dictionary<Renderer, Material> originalMaterials = new Dictionary<Renderer, Material>();
     private Material highlightMaterial;
     private TimeController timeController;
@@ -50,8 +51,10 @@ public class ObjectHighlighter : MonoBehaviour
             if (mainCamera == null)
                 mainCamera = Camera.main;
             
+            State currentState = StateManager.Instance != null ? StateManager.Instance.CurrentState() : State.Normal;
+            
             // 시간 정지 상태에서만 작동 (TimeFreeze)
-            if (StateManager.Instance != null && StateManager.Instance.CurrentState() == State.TimeFreeze)
+            if (currentState == State.TimeFreeze)
             {
                 // 마우스 위치에서 레이캐스트
                 if (Mouse.current != null && mainCamera != null)
@@ -64,39 +67,50 @@ public class ObjectHighlighter : MonoBehaviour
                     
                     if (hits.Length > 0)
                     {
-                        // 가장 가까운 hit 찾기
-                        RaycastHit closestHit = hits[0];
-                        float closestDistance = hits[0].distance;
+                        // 가장 가까운 hit 찾기 (추적 가능한 Rigidbody 있는 것만)
+                        RaycastHit? validHit = null;
+                        float closestDistance = float.MaxValue;
                         
-                        for (int i = 1; i < hits.Length; i++)
+                        for (int i = 0; i < hits.Length; i++)
                         {
-                            if (hits[i].distance < closestDistance)
+                            if (hits[i].distance >= closestDistance) continue;
+                            if (!HasTrackedRigidbody(hits[i].collider.gameObject)) continue;
+                            
+                            closestDistance = hits[i].distance;
+                            validHit = hits[i];
+                        }
+                        
+                        if (validHit.HasValue)
+                        {
+                            RaycastHit closestHit = validHit.Value;
+                            Renderer renderer = closestHit.collider.GetComponent<Renderer>();
+                            if (renderer == null)
+                                renderer = closestHit.collider.GetComponentInParent<Renderer>();
+                            if (renderer == null)
+                                renderer = closestHit.collider.GetComponentInChildren<Renderer>();
+                            
+                            if (renderer != null && renderer != lastHighlighted)
                             {
-                                closestDistance = hits[i].distance;
-                                closestHit = hits[i];
+                                if (lastHighlighted != null)
+                                    RemoveHighlight(lastHighlighted);
+                                ApplyHighlight(renderer);
+                                lastHighlighted = renderer;
+                            }
+                            else if (renderer == null && lastHighlighted != null)
+                            {
+                                RemoveHighlight(lastHighlighted);
+                                lastHighlighted = null;
+                            }
+                            
+                            if (Mouse.current.leftButton.wasPressedThisFrame && timeController != null)
+                            {
+                                timeController.ResumeTime(closestHit.collider.gameObject);
+                                rewindHighlighted = lastHighlighted;
+                                lastHighlighted = null;
                             }
                         }
-                        
-                        Renderer renderer = closestHit.collider.GetComponent<Renderer>();
-                        
-                        if (renderer != null && renderer != lastHighlighted)
+                        else
                         {
-                            // 이전 하이라이트 제거
-                            if (lastHighlighted != null)
-                                RemoveHighlight(lastHighlighted);
-                            
-                            // 새 하이라이트 적용
-                            ApplyHighlight(renderer);
-                            lastHighlighted = renderer;
-                        }
-                        
-                        // 클릭 감지 (Input System은 timeScale 영향 안받음)
-                        if (Mouse.current.leftButton.wasPressedThisFrame && timeController != null)
-                        {
-                            // 시간 재개 및 역행 시작
-                            timeController.ResumeTime(closestHit.collider.gameObject);
-                            
-                            // 하이라이트 제거
                             if (lastHighlighted != null)
                             {
                                 RemoveHighlight(lastHighlighted);
@@ -115,18 +129,71 @@ public class ObjectHighlighter : MonoBehaviour
                     }
                 }
             }
-            else
+            // 리와인드 상태일 때 리와인드 중인 오브젝트에 하이라이트 유지
+            else if (currentState == State.TimeRewind)
             {
-                // 시간이 흐르는 중에는 하이라이트 제거
+                // 리와인드 중인 오브젝트 확인
+                GameObject rewindObj = TimeRewindManager.Instance != null ? TimeRewindManager.Instance.GetRewindingGameObject() : null;
+                
+                if (rewindObj != null)
+                {
+                    Renderer rewindRenderer = rewindObj.GetComponent<Renderer>();
+                    if (rewindRenderer == null)
+                        rewindRenderer = rewindObj.GetComponentInChildren<Renderer>();
+                    if (rewindRenderer == null)
+                        rewindRenderer = rewindObj.GetComponentInParent<Renderer>();
+                    
+                    // 리와인드 중인 오브젝트에 하이라이트 적용
+                    if (rewindRenderer != null && rewindRenderer != rewindHighlighted)
+                    {
+                        // 이전 리와인드 하이라이트 제거
+                        if (rewindHighlighted != null)
+                            RemoveHighlight(rewindHighlighted);
+                        
+                        // 새 리와인드 하이라이트 적용
+                        ApplyHighlight(rewindRenderer);
+                        rewindHighlighted = rewindRenderer;
+                    }
+                }
+                
+                // 마우스 하이라이트는 제거
                 if (lastHighlighted != null)
                 {
                     RemoveHighlight(lastHighlighted);
                     lastHighlighted = null;
                 }
             }
+            else
+            {
+                // Normal 상태: 모든 하이라이트 제거
+                if (lastHighlighted != null)
+                {
+                    RemoveHighlight(lastHighlighted);
+                    lastHighlighted = null;
+                }
+                
+                // 리와인드가 끝났으면 리와인드 하이라이트도 제거
+                if (rewindHighlighted != null)
+                {
+                    RemoveHighlight(rewindHighlighted);
+                    rewindHighlighted = null;
+                }
+            }
             
             yield return null; // 매 프레임 체크
         }
+    }
+    
+    /// <summary>
+    /// 리와인드 가능 여부와 동일: Rigidbody(본인/부모/자식)가 있고 TimeRewindManager에 추적 중이면 true.
+    /// </summary>
+    bool HasTrackedRigidbody(GameObject go)
+    {
+        if (go == null || TimeRewindManager.Instance == null) return false;
+        Rigidbody rb = go.GetComponent<Rigidbody>();
+        if (rb == null) rb = go.GetComponentInParent<Rigidbody>();
+        if (rb == null) rb = go.GetComponentInChildren<Rigidbody>();
+        return rb != null && TimeRewindManager.Instance.IsTracked(rb);
     }
     
     void ApplyHighlight(Renderer renderer)
@@ -211,6 +278,8 @@ public class ObjectHighlighter : MonoBehaviour
         // 모든 하이라이트 제거
         if (lastHighlighted != null)
             RemoveHighlight(lastHighlighted);
+        if (rewindHighlighted != null)
+            RemoveHighlight(rewindHighlighted);
         
         // 딕셔너리에 남아있는 모든 하이라이트 제거
         foreach (var kvp in originalMaterials)

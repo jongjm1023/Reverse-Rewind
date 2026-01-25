@@ -39,8 +39,19 @@ public class TimeRewindManager : MonoBehaviour
     private bool isRewinding = false;
     private Coroutine rewindCoroutine = null;
     private MonoBehaviour disabledComponentBuffer;
+    private Rigidbody currentRewindingRb = null;
 
     public bool IsRewinding => isRewinding;
+    
+    /// <summary>
+    /// 현재 리와인드 중인 Rigidbody를 반환합니다. 없으면 null입니다.
+    /// </summary>
+    public Rigidbody GetRewindingRigidbody() => currentRewindingRb;
+    
+    /// <summary>
+    /// 현재 리와인드 중인 GameObject를 반환합니다. 없으면 null입니다.
+    /// </summary>
+    public GameObject GetRewindingGameObject() => currentRewindingRb != null ? currentRewindingRb.gameObject : null;
 
     void Awake()
     {
@@ -74,6 +85,7 @@ public class TimeRewindManager : MonoBehaviour
             
             // Rewind 상태 초기화
             isRewinding = false;
+            currentRewindingRb = null;
             disabledComponentBuffer = null;
         }
         
@@ -168,6 +180,7 @@ public class TimeRewindManager : MonoBehaviour
     IEnumerator RewindProcess(Rigidbody targetRb, float rewindSeconds)
     {
         isRewinding = true;
+        currentRewindingRb = targetRb;
 
         bool wasKinematic = targetRb.isKinematic;
         bool wasGravity = targetRb.useGravity;
@@ -229,6 +242,7 @@ public class TimeRewindManager : MonoBehaviour
         }
         
         isRewinding = false;
+        currentRewindingRb = null;
         rewindCoroutine = null;
     }
 
