@@ -219,26 +219,20 @@ public class ObjectHighlighter : MonoBehaviour
         Material newMaterial = new Material(renderer.sharedMaterial);
         
         // 방법 1: 색상 직접 변경 (가장 확실한 방법)
-        // _Color 또는 _BaseColor 또는 _MainColor 프로퍼티 찾기
+        // 여러 색상 프로퍼티를 순서대로 체크 (URP shader 우선)
         bool colorChanged = false;
-        if (newMaterial.HasProperty("_Color"))
+        string[] colorProperties = { "_BaseColor", "_Color", "_MainColor", "_MainTint", "_TintColor" };
+        
+        foreach (string propName in colorProperties)
         {
-            Color originalColor = newMaterial.GetColor("_Color");
-            // 원본 색상과 하이라이트 색상을 블렌드
-            newMaterial.SetColor("_Color", Color.Lerp(originalColor, highlightColor, 0.9f));
-            colorChanged = true;
-        }
-        else if (newMaterial.HasProperty("_BaseColor"))
-        {
-            Color originalColor = newMaterial.GetColor("_BaseColor");
-            newMaterial.SetColor("_BaseColor", Color.Lerp(originalColor, highlightColor, 0.9f));
-            colorChanged = true;
-        }
-        else if (newMaterial.HasProperty("_MainColor"))
-        {
-            Color originalColor = newMaterial.GetColor("_MainColor");
-            newMaterial.SetColor("_MainColor", Color.Lerp(originalColor, highlightColor, 0.9f));
-            colorChanged = true;
+            if (newMaterial.HasProperty(propName))
+            {
+                Color originalColor = newMaterial.GetColor(propName);
+                // 원본 색상과 하이라이트 색상을 블렌드
+                newMaterial.SetColor(propName, Color.Lerp(originalColor, highlightColor, 0.9f));
+                colorChanged = true;
+                break; // 첫 번째로 찾은 프로퍼티만 사용
+            }
         }
         
         // 방법 2: Emission도 시도 (Built-in Standard)
