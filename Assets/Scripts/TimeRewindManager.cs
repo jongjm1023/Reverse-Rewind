@@ -251,7 +251,17 @@ public class TimeRewindManager : MonoBehaviour
 
     void ProcessRewindFrame()
     {
-        if (rewindTargetRb == null || rewindHistoryList == null) return;
+        // 역행 중인 오브젝트가 파괴되었는지 확인
+        if (rewindTargetRb == null || rewindHistoryList == null)
+        {
+            // 오브젝트가 파괴되었으면 역행 상태 정리
+            ClearRewindState();
+            if (StateManager.Instance != null)
+            {
+                StateManager.Instance.SetState(State.Normal);
+            }
+            return;
+        }
 
         if (rewindCurrentIndex <= rewindTargetIndex)
         {
@@ -272,6 +282,10 @@ public class TimeRewindManager : MonoBehaviour
 
             FinishRewind(rewindTargetRb, rewindWasK, rewindWasG);
             ClearRewindState();
+            if (StateManager.Instance != null)
+            {
+                StateManager.Instance.SetState(State.Normal);
+            }
             return;
         }
 
@@ -281,6 +295,8 @@ public class TimeRewindManager : MonoBehaviour
 
     void MoveToFrame(int index)
     {
+        if (rewindTargetRb == null) return; // 오브젝트가 파괴되었으면 처리하지 않음
+        
         if (index >= 0 && index < rewindHistoryList.Count)
         {
             ObjectState state = rewindHistoryList[index];
