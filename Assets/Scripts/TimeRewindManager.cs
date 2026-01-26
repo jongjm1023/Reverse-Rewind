@@ -55,10 +55,10 @@ public class TimeRewindManager : MonoBehaviour
     private int rewindTargetIndex;
     private bool rewindWasK;
     private bool rewindWasG;
+    private float rewindWasGearSpeed;
 
     public bool IsRewinding => isRewinding;
     
-    // [복구] Rigidbody만 반환하는 함수
     public Rigidbody GetRewindingRigidbody() => currentRewindingRb;
 
     void Awake()
@@ -95,6 +95,7 @@ public class TimeRewindManager : MonoBehaviour
         disabledComponentBuffer = null;
         rewindTargetRb = null;
         rewindHistoryList = null;
+        rewindWasGearSpeed = 0f;
     }
 
     void FixedUpdate()
@@ -153,7 +154,9 @@ public class TimeRewindManager : MonoBehaviour
             Queue<ObjectState> history = objectHistories[rb];
             ObjectState newState = new ObjectState(rb);
 
-            bool isCurrentlyStationary = newState.IsStationary(stationaryThreshold);
+            // GearRotator가 있는 오브젝트는 정지 상태 판단에서 제외 (항상 기록)
+            bool hasGearRotator = rb.GetComponent<GearRotator>() != null;
+            bool isCurrentlyStationary = hasGearRotator ? false : newState.IsStationary(stationaryThreshold);
 
             if (isCurrentlyStationary)
             {
@@ -196,15 +199,19 @@ public class TimeRewindManager : MonoBehaviour
 
         rewindHistoryList = new List<ObjectState>(historyQueue);
         
-        // 정지 구간 스킵 로직
+        // 정지 구간 스킵 로직 (GearRotator가 있는 오브젝트는 스킵하지 않음)
         int lastIndex = rewindHistoryList.Count - 1;
+        bool hasGearRotator = rb.GetComponent<GearRotator>() != null;
         
-        while (lastIndex > 0 && rewindHistoryList[lastIndex].IsStationary(stationaryThreshold))
+        if (!hasGearRotator)
         {
-            lastIndex--;
+            while (lastIndex > 0 && rewindHistoryList[lastIndex].IsStationary(stationaryThreshold))
+            {
+                lastIndex--;
+            }
+            
+            if (lastIndex < 0) lastIndex = rewindHistoryList.Count - 1;
         }
-        
-        if (lastIndex < 0) lastIndex = rewindHistoryList.Count - 1;
 
         rewindCurrentIndex = lastIndex; 
 
@@ -229,7 +236,13 @@ public class TimeRewindManager : MonoBehaviour
         rb.angularVelocity = Vector3.zero;
 
         var gear = rb.GetComponent<GearRotator>();
-        if (gear != null) { gear.enabled = false; disabledComponentBuffer = gear; }
+        if (gear != null) 
+        { 
+            // 역행 중에는 속도를 반대로 설정하여 반대 방향으로 회전
+            rewindWasGearSpeed = gear.speed;
+            gear.speed = -gear.speed; // 반대 방향으로 회전
+            disabledComponentBuffer = gear; 
+        }
 
         MoveToFrame(rewindCurrentIndex); 
 
@@ -291,35 +304,34 @@ public class TimeRewindManager : MonoBehaviour
                 }
                 rb.WakeUp();
             }
-            if (disabledComponentBuffer != null) { disabledComponentBuffer.enabled = true; disabledComponentBuffer = null; }
+            if (disabledComponentBuffer != null) 
+            { 
+                var gear = disabledComponentBuffer as GearRotator;
+                if (gear != null)
+                {
+                    // 원래 속도로 복원
+                    gear.speed = rewindWasGearSpeed;
+                }
+                disabledComponentBuffer = null; 
+            }
         }
         isRewinding = false;
         currentRewindingRb = null;
     }
 
-    // =========================================================
-    // [복구] 호환성을 위해 누락되었던 헬퍼 메서드들
-    // =========================================================
-
-    /// <summary>
-    /// 현재 역행 중인 오브젝트의 GameObject를 반환 (외부 참조용)
-    /// </summary>
+    // 현재 역행 중인 오브젝트의 GameObject 반환
     public GameObject GetRewindingGameObject()
     {
         return currentRewindingRb != null ? currentRewindingRb.gameObject : null;
     }
 
-    /// <summary>
-    /// 해당 Rigidbody가 추적(기록)되고 있는지 확인
-    /// </summary>
+    // 해당 Rigidbody가 기록되고 있는지 확인
     public bool IsTracked(Rigidbody rb)
     {
         return rb != null && objectHistories.ContainsKey(rb);
     }
 
-    /// <summary>
-    /// 현재 저장된 프레임(기록)의 개수를 반환 (디버깅용)
-    /// </summary>
+    // 현재 저장된 프레임(기록)의 개수를 반환 (디버깅용)
     public int GetRecordedStateCount(Rigidbody rb)
     {
         if (rb != null && objectHistories.ContainsKey(rb))
