@@ -411,7 +411,7 @@ MonoBehaviour:
   target: {fileID: 918123132}
   offset: {x: 0, y: 5, z: -10}
   sensitivity: 0.5
-  lockCursor: 1
+  targetZRoll: 0
 --- !u!114 &330585549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1232,8 +1232,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5532cd1b75cc4d4bb3863cf1938ae45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapFlipper
-  mapRoot: {fileID: 1371690503}
   player: {fileID: 918123134}
+  cameraFollow: {fileID: 330585548}
   duration: 1
 --- !u!1 &1611453828 stripped
 GameObject:

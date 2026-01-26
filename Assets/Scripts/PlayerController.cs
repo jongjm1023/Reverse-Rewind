@@ -124,8 +124,11 @@ public class PlayerController : MonoBehaviour
         float distToBottom = playerCollider.bounds.extents.y;
         float maxDistance = distToBottom + 0.1f;
 
+        // 중력 방향을 사용하여 지면 체크 (중력이 뒤집혀도 올바르게 작동)
+        Vector3 gravityDirection = Physics.gravity.normalized;
+
         // Use SphereCastAll to get all hits, so we can ignore the player's own collider
-        RaycastHit[] hits = Physics.SphereCastAll(origin, radius, Vector3.down, maxDistance, groundLayer);
+        RaycastHit[] hits = Physics.SphereCastAll(origin, radius, gravityDirection, maxDistance, groundLayer);
         
         isGrounded = false;
         foreach (var hit in hits)
@@ -158,7 +161,9 @@ public class PlayerController : MonoBehaviour
             // Usually good to keep momentum or simple add force.
             // Using Impulse for instant force.
             anim.SetBool("Jump", true);
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            // 중력 반대 방향으로 점프 (중력이 뒤집혀도 올바르게 작동)
+            Vector3 jumpDirection = -Physics.gravity.normalized;
+            rb.AddForce(jumpDirection * jumpForce, ForceMode.Impulse);
             jumpRequested = false;
             isGrounded = false;
         }
@@ -197,8 +202,10 @@ public class PlayerController : MonoBehaviour
         {
             moveDirection.Normalize();
 
-            // Rotate
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+            // Rotate: 중력 방향을 고려하여 회전
+            // 중력 반대 방향을 up 벡터로 사용하여 플레이어가 항상 올바른 방향을 향하도록 함
+            Vector3 gravityUp = -Physics.gravity.normalized;
+            Quaternion targetRotation = Quaternion.LookRotation(moveDirection, gravityUp);
             rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
             
             anim.SetFloat("Speed", 10f);

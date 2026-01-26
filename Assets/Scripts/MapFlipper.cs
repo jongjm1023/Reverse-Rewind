@@ -1,126 +1,93 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
-using System.Collections.Generic;
 
 public class MapFlipper : MonoBehaviour
 {
     [Header("References")]
-    public Transform mapRoot;
     public PlayerController player;
+    public CameraFollow cameraFollow;
 
     [Header("Settings")]
     public float duration = 1.0f;
 
-    private List<RigidbodyData> activeRigidbodies = new List<RigidbodyData>();
+    private bool isGravityInverted = false;
+    private Vector3 defaultGravity;
 
-    // Rigidbody의 원래 상태를 저장하기 위한 구조체
-    struct RigidbodyData
+    void Start()
     {
-        public Rigidbody rb;
-        public bool wasKinematic;
+        defaultGravity = Physics.gravity;
     }
 
     void Update()
     {
-        if (StateManager.Instance.CurrentState() != State.MapFlip && Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
         {
-            StartCoroutine(FlipRoutine());
+            AttemptFlip();
         }
+    }
+
+    private void AttemptFlip()
+    {
+        if (StateManager.Instance.CurrentState() != State.Normal) return;
+        if (player != null && !player.IsGrounded())
+        {
+            Debug.LogWarning("공중에서는 능력을 사용할 수 없습니다!");
+            return;
+        }
+
+        StartCoroutine(FlipRoutine());
     }
 
     IEnumerator FlipRoutine()
     {
-        // 상태 체크
-        if (!StateManager.Instance.CanUseAbility())
-        {
-            Debug.LogWarning("다른 능력 사용 중입니다!");
-            yield break;
-        }
-
-        // [추가] 지상 체크
-        if (player != null && !player.IsGrounded())
-        {
-            Debug.LogWarning("공중에서는 능력을 사용할 수 없습니다!");
-            yield break;
-        }
-        
         StateManager.Instance.SetState(State.MapFlip);
 
-        // 1. 플레이어 상태 저장 및 중력 해제
-        Quaternion initialPlayerRotation = Quaternion.identity;
-        if (player != null)
-        {
-            initialPlayerRotation = player.transform.rotation;
-        }
+        // [중요 1] 시간 정지 (원래 속도 저장)
+        float originalTimeScale = Time.timeScale;
+        Time.timeScale = 0f;
 
-        // 2. 모든 Rigidbody 물리 정지 (맵 내부의 물체들)
-        FreezeAllPhysics();
+        isGravityInverted = !isGravityInverted;
 
-        // 3. 맵 회전 설정
-        Quaternion startRotation = mapRoot.rotation;
-        Quaternion endRotation = startRotation * Quaternion.Euler(0, 0, 180f);
+        // A. 물리 설정
+        Physics.gravity = isGravityInverted ? -defaultGravity : defaultGravity;
 
+        // B. 목표값 설정
+        float startCamRoll = cameraFollow.targetZRoll;
+        float endCamRoll = isGravityInverted ? 180f : 0f;
+
+        Quaternion startPlayerRot = player.transform.rotation;
+        Vector3 gravityDir = Physics.gravity.normalized;
+        Vector3 currentForward = player.transform.forward;
+        Vector3 targetUp = -gravityDir;
+        Quaternion endPlayerRot = Quaternion.LookRotation(currentForward, targetUp);
+
+        // C. 애니메이션 실행
         float elapsed = 0f;
         while (elapsed < duration)
         {
-            float t = elapsed / duration;
-            t = t * t * (3f - 2f * t); // SmoothStep
-
-            mapRoot.rotation = Quaternion.Slerp(startRotation, endRotation, t);
-
-            // [중요] 플레이어가 맵의 자식이라면 회전값이 변하므로 매 프레임 고정
-            if (player != null)
-            {
-                player.transform.rotation = initialPlayerRotation;
-            }
-
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        mapRoot.rotation = endRotation;
-
-        // 4. 상태 복구
-        UnfreezeAllPhysics();
-
-        if (player != null)
-        {
-            player.transform.rotation = initialPlayerRotation;
-        }
-
-        // 상태 초기화
-        StateManager.Instance.SetState(State.Normal);
-    }
-
-    private void FreezeAllPhysics()
-    {
-        activeRigidbodies.Clear();
-        // 맵 내에 있는 모든 Rigidbody를 찾습니다. (성능을 위해 mapRoot 하위만 찾는 것이 좋습니다)
-        Rigidbody[] rbs = mapRoot.GetComponentsInChildren<Rigidbody>();
-
-        foreach (Rigidbody rb in rbs)
-        {
-            // 현재 상태 저장
-            activeRigidbodies.Add(new RigidbodyData { rb = rb, wasKinematic = rb.isKinematic });
+            // [중요 2] 시간이 멈춰있으므로 unscaledDeltaTime 사용
+            // 이걸 안 쓰면 elapsed가 증가하지 않아 무한 루프에 빠짐
+            elapsed += Time.unscaledDeltaTime; 
             
-            // 물리 연산 중지 (속도 초기화 및 Kinematic 설정)
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.isKinematic = true;
-        }
-    }
+            float t = elapsed / duration;
+            t = Mathf.Clamp01(t); // 혹시 모를 오버슈팅 방지
+            t = t * t * (3f - 2f * t);
 
-    private void UnfreezeAllPhysics()
-    {
-        foreach (RigidbodyData data in activeRigidbodies)
-        {
-            if (data.rb != null)
-            {
-                // 원래 Kinematic이 아니었던 물체들만 다시 물리 연산 활성화
-                data.rb.isKinematic = data.wasKinematic;
-            }
+            cameraFollow.targetZRoll = Mathf.Lerp(startCamRoll, endCamRoll, t);
+            player.transform.rotation = Quaternion.Slerp(startPlayerRot, endPlayerRot, t);
+
+            // 시간이 멈춰도 코루틴은 다음 프레임까지 대기해야 함
+            yield return null; 
         }
-        activeRigidbodies.Clear();
+
+        // D. 마무리
+        cameraFollow.targetZRoll = endCamRoll;
+        player.transform.rotation = endPlayerRot;
+
+        // [중요 3] 시간 복구
+        Time.timeScale = originalTimeScale;
+
+        StateManager.Instance.SetState(State.Normal);
     }
 }
