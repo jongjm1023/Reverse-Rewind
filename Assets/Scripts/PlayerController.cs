@@ -130,8 +130,8 @@ public class PlayerController : MonoBehaviour
         isGrounded = false;
         foreach (var hit in hits)
         {
-            // Ignore self
-            if (hit.collider.gameObject != gameObject)
+            // Ignore self AND objects tagged as "Wind"
+            if (hit.collider.gameObject != gameObject && !hit.collider.CompareTag("Wind"))
             {
                 isGrounded = true;
                 anim.SetBool("Jump", false);
