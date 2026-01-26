@@ -69,10 +69,6 @@ public class PressureSwitch : MonoBehaviour
 
     public void HandleTriggerEnter(Collider other)
     {
-        // Check if the object is entering from above
-        Vector3 direction = other.transform.position - transform.position;
-        if (direction.y < 0.05f) return;
-
         // Filtering: Only allow objects with Rigidbody
         if (other.attachedRigidbody == null) return;
         
@@ -109,7 +105,10 @@ public class PressureSwitch : MonoBehaviour
     private void ActivateSwitch()
     {
         // Set target position down
-        targetPosition = initialPosition - new Vector3(0, pressDepth, 0);
+        // Set target position down relative to the switch's rotation
+        // Transform "down" from local space to parent space
+        Vector3 localDown = transform.localRotation * -Vector3.right;
+        targetPosition = initialPosition + localDown * pressDepth;
 
         // Swap visuals
         if (unpressedVisual != null) unpressedVisual.SetActive(false);
