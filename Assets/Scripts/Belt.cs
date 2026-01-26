@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class SmartBelt : MonoBehaviour
+public class Belt : MonoBehaviour
 {
     [Header("Settings")]
     public float speed = 5.0f;

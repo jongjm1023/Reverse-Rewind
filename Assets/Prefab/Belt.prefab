@@ -124,7 +124,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0349980c9e86f47829908d8fcb1e0b85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RealBelt
-  speed: 5
+  speed: 8.5
+  playerTag: Player
   beltRenderer: {fileID: 0}
   textureName: _BaseMap
   visualSpeedMultiplier: 0.03
