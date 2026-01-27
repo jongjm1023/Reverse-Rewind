@@ -13,7 +13,7 @@ public class TimeRewindManager : MonoBehaviour
 
     [Header("Optimization Settings")]
     public float maxStationarySaveTime = 10f; // 정지 상태는 최대 10초까지만 기록
-    public float stationaryThreshold = 0.01f; // 정지라고 판단할 속도 오차값
+    public float stationaryThreshold = 0.08f; // 정지라고 판단할 속도 오차값
 
     [Header("Object Tracking")]
     public LayerMask trackableLayers = -1;

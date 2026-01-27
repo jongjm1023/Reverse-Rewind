@@ -12,11 +12,37 @@ public class MapFlipper : MonoBehaviour
     public float duration = 1.0f;
 
     private bool isGravityInverted = false;
-    private Vector3 defaultGravity;
+    private Vector3 defaultGravity = new Vector3(0, -9.81f, 0); // 기본값 설정
 
     void Start()
     {
         defaultGravity = Physics.gravity;
+    }
+
+    // 씬 리로드 시 중력 상태 초기화를 위한 공개 메서드
+    public void ResetGravity()
+    {
+        isGravityInverted = false;
+        
+        // defaultGravity가 설정되지 않았으면 기본값 사용
+        if (defaultGravity == Vector3.zero)
+        {
+            defaultGravity = new Vector3(0, -9.81f, 0);
+        }
+        
+        Physics.gravity = defaultGravity;
+        
+        // 카메라 회전 초기화
+        if (cameraFollow != null)
+        {
+            cameraFollow.targetZRoll = 0f;
+        }
+        
+        // 플레이어 회전 초기화
+        if (player != null)
+        {
+            player.transform.rotation = Quaternion.identity;
+        }
     }
 
     void Update()

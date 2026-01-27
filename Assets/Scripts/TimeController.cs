@@ -47,6 +47,38 @@ public class TimeController : MonoBehaviour
         // 시간 스케일 초기화
         Time.timeScale = 1f;
         ToggleCursor(false);
+        
+        // 중력 상태 초기화
+        ResetGravityState();
+    }
+
+    // 중력 상태 초기화 헬퍼 메서드
+    private void ResetGravityState()
+    {
+        // MapFlipper 찾아서 중력 초기화
+        MapFlipper mapFlipper = FindObjectOfType<MapFlipper>();
+        if (mapFlipper != null)
+        {
+            mapFlipper.ResetGravity();
+        }
+        else
+        {
+            // MapFlipper가 없어도 Physics.gravity는 초기화
+            Physics.gravity = new Vector3(0, -9.81f, 0);
+        }
+        
+        // CameraFollow의 targetZRoll 초기화
+        CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
+        if (cameraFollow != null)
+        {
+            cameraFollow.targetZRoll = 0f;
+        }
+        
+        // 플레이어 회전 초기화
+        if (player != null)
+        {
+            player.transform.rotation = Quaternion.identity;
+        }
     }
 
     void FindPlayer()
