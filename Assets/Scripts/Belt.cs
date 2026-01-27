@@ -19,7 +19,8 @@ public class Belt : MonoBehaviour
         if (beltRenderer != null)
         {
             float offset = Time.time * speed * visualSpeedMultiplier;
-            beltRenderer.material.SetTextureOffset(textureName, new Vector2(offset, 0));
+            float currentOffsetY = beltRenderer.material.GetTextureOffset(textureName).y;
+            beltRenderer.material.SetTextureOffset(textureName, new Vector2(offset, currentOffsetY));
         }
     }
 
