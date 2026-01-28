@@ -25,17 +25,15 @@ https://github.com/rhkdlfla
 # Reverse & Rewind
 
 > 공간을 뒤집고 시간을 돌려서 탈출하라
-> 
 
+공간을 뒤집고 각종 오브젝트의 시간을 돌려 탈출하는 3D 플랫포머 퍼즐 게임
 개발: Unity
 
 # 메인 기능
 
-MapReverse: 
-https://github.com/user-attachments/assets/98133484-7cd0-4c33-a780-cb3f50d19ce1
+MapReverse: 공간 전체를 뒤집습니다. https://github.com/user-attachments/assets/98133484-7cd0-4c33-a780-cb3f50d19ce1
 
-TimeRewind: 
-https://github.com/user-attachments/assets/6f4a4f5f-6d23-4910-afd9-573b9b77609b
+TimeRewind: 물체의 시간을 되돌립니다. https://github.com/user-attachments/assets/6f4a4f5f-6d23-4910-afd9-573b9b77609b
 
 # 오브젝트
 
