@@ -1,3 +1,4 @@
+<img width="2816" height="1348" alt="KakaoTalk_20260128_165247587" src="https://github.com/user-attachments/assets/072e1b82-5504-441c-bbe0-9711e16b547f" />
 # 팀원 소개
 
 <aside>
