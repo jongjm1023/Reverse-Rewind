@@ -408,8 +408,8 @@ Transform:
   m_GameObject: {fileID: 118500845}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -25, y: 25, z: 9.52}
-  m_LocalScale: {x: 50, y: 50, z: 20}
+  m_LocalPosition: {x: -25, y: 12.5, z: 9.52}
+  m_LocalScale: {x: 50, y: 25, z: 20}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1371690503}
@@ -428,7 +428,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Tutorial
   subtitlePanel: {fileID: 847265211}
   subtitleText: {fileID: 847265213}
-  message: Press R to Flip
+  message: Press R to Reverse
 --- !u!65 &118500848
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1570,8 +1570,8 @@ Transform:
   m_GameObject: {fileID: 1125606771}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -25, y: 25, z: 24.96}
-  m_LocalScale: {x: 50, y: 50, z: 10}
+  m_LocalPosition: {x: -25, y: 12.5, z: 24.96}
+  m_LocalScale: {x: 50, y: 25, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1371690503}
@@ -1925,8 +1925,8 @@ Transform:
   m_GameObject: {fileID: 1377034129}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -25, y: 25, z: 39.63}
-  m_LocalScale: {x: 50, y: 50, z: 20}
+  m_LocalPosition: {x: -25, y: 12.5, z: 39.63}
+  m_LocalScale: {x: 50, y: 25, z: 20}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1371690503}
