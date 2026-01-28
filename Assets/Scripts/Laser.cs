@@ -27,6 +27,19 @@ public class Laser : MonoBehaviour
         // 1. 레이저의 시작점은 내 위치
         lineRenderer.SetPosition(0, transform.position);
 
+        // 0. 시작 지점에 무언가 겹쳐있는지 확인 (OverlapSphere)
+        Collider[] overlaps = Physics.OverlapSphere(transform.position, 0.2f);
+        foreach (var col in overlaps)
+        {
+            if (IsValidTarget(col))
+            {
+                // 시작하자마자 막힘
+                lineRenderer.SetPosition(1, transform.position);
+                HandleHit(col);
+                return;
+            }
+        }
+
         // 2. 방향과 거리 계산
         Vector3 direction = targetPoint.position - transform.position;
         float maxDistance = direction.magnitude; // Receiver까지의 거리
@@ -41,8 +54,7 @@ public class Laser : MonoBehaviour
 
         foreach (var hit in hits)
         {
-            // 자신(Laser 본체)이나 Wind 태그는 무시
-            if (hit.collider.gameObject == gameObject || hit.collider.CompareTag("Wind") || hit.collider.CompareTag("Floor")|| hit.collider.CompareTag("Text") )
+            if (!IsValidTarget(hit.collider))
             {
                 continue;
             }
@@ -59,22 +71,39 @@ public class Laser : MonoBehaviour
             // A. 시각 효과: 레이저가 물체 표면에서 끊기게 함
             lineRenderer.SetPosition(1, hit.point);
 
-            // B. 감지 로직: 닿은 게 플레이어인가?
-            PlayerController player = hit.collider.GetComponentInParent<PlayerController>();
-
-            if (player != null)
-            {
-                if (player.CompareTag(targetTag))
-                {
-                    Debug.Log("<color=red>침입자 감지! 경보 울림!</color>");
-                    player.Respawn();
-                }
-            }
+            // B. 감지 로직
+            HandleHit(hit.collider);
         }
         else
         {
             // 아무것도 안 닿았으면 Receiver까지 쭉 그림
             lineRenderer.SetPosition(1, targetPoint.position);
+        }
+    }
+
+    // 유효한 타겟인지 확인하는 로직 분리
+    bool IsValidTarget(Collider col)
+    {
+        // 자신(Laser 본체)이나 Wind 태그는 무시
+        if (col.gameObject == gameObject || col.CompareTag("Wind") || col.CompareTag("Floor") || col.CompareTag("Text"))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    // 충돌 처리 로직 분리
+    void HandleHit(Collider col)
+    {
+        PlayerController player = col.GetComponentInParent<PlayerController>();
+
+        if (player != null)
+        {
+            if (player.CompareTag(targetTag))
+            {
+                Debug.Log("<color=red>침입자 감지! 경보 울림!</color>");
+                player.Respawn();
+            }
         }
     }
 }
