@@ -31,10 +31,10 @@ https://github.com/rhkdlfla
 
 # 메인 기능
 
-MapReverse
+MapReverse: 
 https://github.com/user-attachments/assets/98133484-7cd0-4c33-a780-cb3f50d19ce1
 
-TimeRewind
+TimeRewind: 
 https://github.com/user-attachments/assets/6f4a4f5f-6d23-4910-afd9-573b9b77609b
 
 # 오브젝트
